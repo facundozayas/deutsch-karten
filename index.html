@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Deutsch Karten</title>
+<meta name="description" content="Repaso de vocabulario alemán A1 con repetición espaciada (FSRS)">
+
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0f1115">
+
+<!-- iOS PWA support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Deutsch Karten">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+
+<link rel="icon" href="./icons/icon-192.png">
+<link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+
+<div id="app" class="app">
+
+  <!-- Onboarding / offline-progress notice -->
+  <div id="onboarding" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h2>Bienvenido 👋</h2>
+      <p>Esta app guarda tu progreso <strong>solo en este dispositivo</strong> (no hay cuentas ni servidor). Si cambiás de celular o borrás datos del navegador, lo perdés — salvo que hagas un backup desde Ajustes → Exportar progreso.</p>
+      <button id="onboarding-ok" class="btn btn-primary">Entendido, empezar</button>
+    </div>
+  </div>
+
+  <!-- Test de diagnóstico de nivel -->
+  <div id="diagnostic-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card modal-card-tall">
+      <div id="diagnostic-running">
+        <h2 id="diagnostic-title">Test de diagnóstico</h2>
+        <div class="progress-bar"><div id="diagnostic-progress" class="progress-fill"></div></div>
+        <div class="card-term" id="diagnostic-term" style="margin: 20px 0;"></div>
+        <div id="diagnostic-options" class="quiz-options"></div>
+      </div>
+      <div id="diagnostic-result" class="hidden">
+        <h2 id="diagnostic-result-title">Resultado</h2>
+        <p id="diagnostic-result-text" class="muted"></p>
+        <button id="diagnostic-unlock-btn" class="btn btn-primary hidden">Desbloquear nivel</button>
+        <button id="diagnostic-close-btn" class="btn btn-secondary">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import de mazo Anki: preview + confirmación -->
+  <div id="anki-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card modal-card-tall">
+      <h2>Importar mazo</h2>
+      <div id="anki-modal-loading" class="muted">Procesando archivo…</div>
+      <div id="anki-modal-preview" class="hidden">
+        <p class="muted small" id="anki-preview-summary"></p>
+        <div class="settings-row">
+          <div class="settings-label">Campo alemán</div>
+          <select id="anki-field-de"></select>
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">Campo español</div>
+          <select id="anki-field-es"></select>
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">Categoría</div>
+          <input type="text" id="anki-categoria" value="Importado (Anki)">
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">Nivel</div>
+          <select id="anki-nivel"></select>
+        </div>
+        <div id="anki-preview-table" class="anki-preview-table"></div>
+        <button id="anki-confirm-btn" class="btn btn-primary">Importar tarjetas</button>
+        <button id="anki-cancel-btn" class="btn btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <h1 id="view-title">Repasar</h1>
+    <div class="due-count" id="due-count" aria-live="polite"></div>
+  </header>
+
+  <main id="main">
+
+    <!-- REVIEW VIEW -->
+    <section id="view-review" class="view">
+
+      <div id="level-banner" class="level-banner hidden">
+        <div id="level-banner-text" class="level-banner-text"></div>
+        <div class="level-banner-actions">
+          <button id="level-banner-test" class="btn btn-primary btn-sm">Hacer test</button>
+          <button id="level-banner-dismiss" class="btn btn-secondary btn-sm">Ahora no</button>
+        </div>
+      </div>
+
+      <div class="mode-switch" id="mode-switch">
+        <button class="mode-btn active" data-mode="flashcards">Flashcards</button>
+        <button class="mode-btn" data-mode="quiz">Quiz</button>
+      </div>
+
+      <div id="review-empty" class="empty-state hidden">
+        <p class="empty-emoji">✅</p>
+        <p>Por hoy no tenés tarjetas pendientes.</p>
+        <p class="muted">Volvé más tarde o repasá igual desde Estadísticas.</p>
+      </div>
+
+      <div id="review-loading" class="empty-state">
+        <p class="muted">Cargando…</p>
+      </div>
+
+      <div id="review-card-wrap" class="card-wrap hidden">
+        <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+
+        <div id="card" class="card">
+          <div class="card-category" id="card-category"></div>
+
+          <div class="card-front">
+            <div class="card-term" id="card-term"></div>
+            <button id="btn-listen" class="btn-icon" aria-label="Escuchar pronunciación" title="Escuchar">🔊</button>
+          </div>
+
+          <button id="btn-reveal" class="btn btn-primary btn-reveal">Mostrar respuesta</button>
+
+          <div id="card-back" class="card-back hidden">
+            <div class="answer-block">
+              <div class="answer-main" id="card-answer"></div>
+              <button id="btn-listen-back" class="btn-icon hidden" aria-label="Escuchar pronunciación" title="Escuchar">🔊</button>
+              <div class="answer-extra" id="card-extra"></div>
+            </div>
+            <div class="example-block" id="example-block">
+              <div class="example-de" id="example-de"></div>
+              <div class="example-es" id="example-es"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="grade-buttons" class="grade-buttons hidden">
+          <button class="btn-grade btn-again" data-grade="1">Otra vez</button>
+          <button class="btn-grade btn-hard" data-grade="2">Difícil</button>
+          <button class="btn-grade btn-good" data-grade="3">Bien</button>
+          <button class="btn-grade btn-easy" data-grade="4">Fácil</button>
+        </div>
+      </div>
+
+      <!-- QUIZ MODE -->
+      <div id="quiz-card-wrap" class="card-wrap hidden">
+        <div class="progress-bar"><div id="quiz-progress-fill" class="progress-fill"></div></div>
+
+        <div class="card">
+          <div class="card-category" id="quiz-category"></div>
+          <div class="card-front">
+            <div class="card-term" id="quiz-term"></div>
+            <button id="quiz-btn-listen" class="btn-icon hidden" aria-label="Escuchar pronunciación" title="Escuchar">🔊</button>
+          </div>
+        </div>
+
+        <div id="quiz-options" class="quiz-options"></div>
+      </div>
+
+      <div id="session-complete" class="empty-state hidden">
+        <p class="empty-emoji">🎉</p>
+        <p id="session-summary">¡Sesión completa!</p>
+        <button id="btn-review-more" class="btn btn-secondary">Repasar más</button>
+      </div>
+    </section>
+
+    <!-- STATS VIEW -->
+    <section id="view-stats" class="view hidden">
+      <div class="stats-grid">
+        <div class="stat-tile">
+          <div class="stat-value" id="stat-today">0</div>
+          <div class="stat-label">Repasadas hoy</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-value" id="stat-streak">0</div>
+          <div class="stat-label">Racha (días)</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-value" id="stat-retention">–</div>
+          <div class="stat-label">Retención (30d)</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-label">Total tarjetas</div>
+        </div>
+      </div>
+
+      <h3 class="section-title">Por estado</h3>
+      <div class="state-breakdown" id="state-breakdown"></div>
+    </section>
+
+    <!-- SETTINGS VIEW -->
+    <section id="view-settings" class="view hidden">
+      <div class="settings-list">
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Modo oscuro</div>
+            <div class="settings-hint">Se guarda en este dispositivo</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-dark" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="settings-row settings-row-col">
+          <div class="settings-label">Nivel</div>
+          <div class="settings-hint">Los niveles se desbloquean en orden. Podés activarlos a mano o hacer el test de diagnóstico cuando creas que estás listo.</div>
+          <div id="levels-list" class="levels-list"></div>
+        </div>
+
+        <div class="settings-row settings-row-col">
+          <div class="settings-label">Importar mazo de Anki</div>
+          <div class="settings-hint">Subí un archivo .apkg descargado de AnkiWeb para sumar sus tarjetas al repaso. La primera vez necesita conexión a internet.</div>
+          <div class="settings-actions">
+            <label class="btn btn-secondary file-btn">
+              Elegir archivo .apkg
+              <input type="file" id="anki-file" accept=".apkg" hidden>
+            </label>
+          </div>
+          <div id="anki-status" class="muted small"></div>
+        </div>
+
+        <div class="settings-row settings-row-col">
+          <div class="settings-label">Backup de progreso</div>
+          <div class="settings-hint">Tu progreso vive solo en este navegador. Exportalo de vez en cuando por las dudas.</div>
+          <div class="settings-actions">
+            <button id="btn-export" class="btn btn-secondary">Exportar progreso (.json)</button>
+            <label class="btn btn-secondary file-btn">
+              Importar progreso
+              <input type="file" id="import-file" accept="application/json" hidden>
+            </label>
+          </div>
+          <div id="backup-status" class="muted small"></div>
+        </div>
+
+        <div class="settings-row settings-row-col">
+          <div class="settings-label">Acerca de</div>
+          <div class="settings-hint">Deutsch Karten · repaso de alemán con repetición espaciada (FSRS). Todo el progreso se guarda solo en este dispositivo.</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="tab-btn active" data-view="review">
+      <span class="tab-icon">🗂️</span><span>Repasar</span>
+    </button>
+    <button class="tab-btn" data-view="stats">
+      <span class="tab-icon">📊</span><span>Stats</span>
+    </button>
+    <button class="tab-btn" data-view="settings">
+      <span class="tab-icon">⚙️</span><span>Ajustes</span>
+    </button>
+  </nav>
+
+  <div id="toast" class="toast hidden"></div>
+</div>
+
+<script type="module" src="./js/app.js"></script>
+</body>
+</html>
