@@ -79,6 +79,25 @@
     </div>
   </div>
 
+  <!-- Drill independiente (artículos der/die/das, conjugaciones) — no toca FSRS -->
+  <div id="drill-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card modal-card-tall">
+      <div id="drill-running">
+        <h2 id="drill-title">Práctica</h2>
+        <div class="progress-bar"><div id="drill-progress" class="progress-fill"></div></div>
+        <div class="muted small" id="drill-context" style="margin-top: 10px;"></div>
+        <div class="card-term" id="drill-term" style="margin: 8px 0 20px;"></div>
+        <div id="drill-options" class="quiz-options"></div>
+      </div>
+      <div id="drill-result" class="hidden">
+        <h2 id="drill-result-title">Resultado</h2>
+        <p id="drill-result-text" class="muted"></p>
+        <button id="drill-retry-btn" class="btn btn-primary">Practicar de nuevo</button>
+        <button id="drill-close-btn" class="btn btn-secondary">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <header class="topbar">
     <h1 id="view-title">Repasar</h1>
     <div class="due-count" id="due-count" aria-live="polite"></div>
@@ -100,6 +119,7 @@
       <div class="mode-switch" id="mode-switch">
         <button class="mode-btn active" data-mode="flashcards">Flashcards</button>
         <button class="mode-btn" data-mode="quiz">Quiz</button>
+        <button class="mode-btn" data-mode="write">Escribir</button>
       </div>
 
       <div id="review-empty" class="empty-state hidden">
@@ -161,6 +181,42 @@
         <div id="quiz-options" class="quiz-options"></div>
       </div>
 
+      <!-- WRITE MODE (producción activa: escribís la respuesta en alemán) -->
+      <div id="write-card-wrap" class="card-wrap hidden">
+        <div class="progress-bar"><div id="write-progress-fill" class="progress-fill"></div></div>
+
+        <div class="card">
+          <div class="card-category" id="write-category"></div>
+          <div class="card-front">
+            <div class="card-term" id="write-term"></div>
+          </div>
+
+          <form id="write-form" autocomplete="off">
+            <input type="text" id="write-input" class="write-input" placeholder="Escribí la palabra en alemán…" autocapitalize="off" autocorrect="off" spellcheck="false">
+            <button type="submit" id="write-check-btn" class="btn btn-primary btn-reveal">Comprobar</button>
+          </form>
+
+          <div id="write-feedback" class="write-feedback hidden">
+            <div id="write-feedback-status" class="write-feedback-status"></div>
+            <div class="answer-block">
+              <div class="answer-main" id="write-answer"></div>
+              <button id="write-btn-listen" class="btn-icon" aria-label="Escuchar pronunciación" title="Escuchar">🔊</button>
+            </div>
+            <div class="example-block">
+              <div class="example-de" id="write-example-de"></div>
+              <div class="example-es" id="write-example-es"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="write-grade-buttons" class="grade-buttons hidden">
+          <button class="btn-grade btn-again" data-grade="1">Otra vez</button>
+          <button class="btn-grade btn-hard" data-grade="2">Difícil</button>
+          <button class="btn-grade btn-good" data-grade="3">Bien</button>
+          <button class="btn-grade btn-easy" data-grade="4">Fácil</button>
+        </div>
+      </div>
+
       <div id="session-complete" class="empty-state hidden">
         <p class="empty-emoji">🎉</p>
         <p id="session-summary">¡Sesión completa!</p>
@@ -205,6 +261,26 @@
             <input type="checkbox" id="toggle-dark" checked>
             <span class="slider"></span>
           </label>
+        </div>
+
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">🎧 Modo solo audio</div>
+            <div class="settings-hint">En Flashcards, escuchás la palabra en vez de leerla — pensada para el tren</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-audio-only">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="settings-row settings-row-col">
+          <div class="settings-label">Práctica extra</div>
+          <div class="settings-hint">Ejercicios cortos para reforzar puntos específicos. No cuentan para las estadísticas ni la racha — no reemplazan el repaso diario, lo complementan.</div>
+          <div class="settings-actions">
+            <button id="btn-drill-articles" class="btn btn-secondary">Practicar artículos (der/die/das)</button>
+            <button id="btn-drill-conjugation" class="btn btn-secondary">Practicar conjugaciones</button>
+          </div>
         </div>
 
         <div class="settings-row settings-row-col">

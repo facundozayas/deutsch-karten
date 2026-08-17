@@ -2,11 +2,13 @@
 
 App de repaso de vocabulario alemán (niveles A1 y A2, con mecanismo listo para B1/B2), con repetición espaciada real (FSRS), pensada para usarse desde el celular como PWA instalada, sin cuentas ni servidor: todo tu progreso vive en el navegador de tu dispositivo.
 
-## Qué incluye esta versión (v2)
+## Qué incluye esta versión (v3)
 
 - 384 palabras/frases A1 + 265 de A2 (649 en total), organizadas por categorías temáticas. B1/B2 se generan cuando llegues ahí — el mecanismo de niveles ya los soporta sin tocar código.
 - Flashcards con el algoritmo FSRS real (no un timer fijo): las tarjetas se repiten justo cuando es más probable que las estés por olvidar.
-- Modo Quiz (opción múltiple), alimenta el mismo sistema de repetición espaciada que las flashcards.
+- Modo Quiz (opción múltiple) y modo **Escribir** (producción activa: escribís la palabra en alemán de memoria, incluido el artículo) — ambos alimentan el mismo sistema de repetición espaciada que las flashcards.
+- **Modo solo audio** (toggle en Ajustes): en Flashcards, escuchás la palabra en alemán en vez de leerla — pensado para usar en el tren sin mirar la pantalla.
+- **Práctica extra** (Ajustes): drills cortos de artículos (der/die/das) y de conjugación de 29 verbos de alta frecuencia en presente — no cuentan para las estadísticas ni la racha, son un complemento del repaso diario, no un reemplazo.
 - Sistema de niveles: desbloqueás A2/B1/B2 a mano desde Ajustes, o hacés un test de diagnóstico (15 preguntas, 85% para aprobar) que te lo sugiere. La app también te avisa sola cuando ya dominás la mayoría del nivel actual.
 - Importar mazos `.apkg` de AnkiWeb (necesita conexión la primera vez que la usás, después funciona offline).
 - Dirección de la tarjeta mezclada al azar (alemán→español y español→alemán), con inglés como dato extra.
@@ -61,7 +63,7 @@ git add .
 git commit -m "Descripcion del cambio"
 git push
 ```
-GitHub Pages se actualiza solo en 1-2 minutos. Ojo: si cambia algún archivo cacheado por el service worker, hay que bumpear `CACHE_NAME` en `service-worker.js` (ya está comentado ahí mismo) para que no quede la versión vieja pegada en el celular — esto ya está hecho para esta versión (`deutsch-karten-v2`).
+GitHub Pages se actualiza solo en 1-2 minutos. Ojo: si cambia algún archivo cacheado por el service worker, hay que bumpear `CACHE_NAME` en `service-worker.js` (ya está comentado ahí mismo) para que no quede la versión vieja pegada en el celular — esto ya está hecho para esta versión (`deutsch-karten-v3`).
 
 ## Importante: dónde vive tu progreso
 
@@ -76,17 +78,21 @@ Todo tu progreso de repaso (qué tarjetas viste, cuándo toca repasarlas de nuev
 ├── service-worker.js
 ├── css/styles.css
 ├── js/
-│   ├── app.js             # boot, cola de repaso, UI, stats, niveles, import
+│   ├── app.js             # boot, cola de repaso, UI, stats, niveles, import, drills
 │   ├── fsrs.js             # wrapper sobre ts-fsrs
 │   ├── storage.js          # IndexedDB (cardStates, reviewLog, customVocab, meta)
 │   ├── levels.js           # lógica de niveles y test de diagnóstico
 │   ├── quiz.js              # lógica del modo Quiz
-│   ├── anki-import.js       # parser de mazos .apkg (JSZip + sql.js)
-│   ├── tts.js                # Web Speech API
-│   └── vendor/               # ts-fsrs, jszip, sql.js — vendorizados, sin CDN externo
+│   ├── write.js              # normalización/chequeo de respuestas del modo Escribir
+│   ├── articles.js            # lógica del drill de artículos (der/die/das)
+│   ├── conjugation.js          # lógica del drill de conjugación
+│   ├── anki-import.js           # parser de mazos .apkg (JSZip + sql.js)
+│   ├── tts.js                    # Web Speech API
+│   └── vendor/                    # ts-fsrs, jszip, sql.js — vendorizados, sin CDN externo
 ├── data/
 │   ├── vocab-a1.json         # 384 palabras/frases A1
-│   └── vocab-a2.json          # 265 palabras/frases A2
+│   ├── vocab-a2.json          # 265 palabras/frases A2
+│   └── conjugaciones.json      # 29 verbos de alta frecuencia, presente
 ├── icons/
 └── tools/                     # scripts usados para generar contenido/íconos (no se usan en runtime)
 ```
@@ -94,4 +100,4 @@ Todo tu progreso de repaso (qué tarjetas viste, cuándo toca repasarlas de nuev
 ## Qué viene después
 
 - Generar `vocab-b1.json` / `vocab-b2.json` cuando llegues a esos niveles.
-- Fase 2 (a pedido): drills de conjugación, modo "escribir la palabra", heatmap de actividad, exportar progreso propio como `.apkg`.
+- Fase 2 (a pedido): heatmap de actividad, exportar progreso propio como `.apkg`, más tiempos verbales (Perfekt/Präteritum) en los drills de conjugación.

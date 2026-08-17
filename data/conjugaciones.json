@@ -1,0 +1,147 @@
+[
+  {
+    "infinitivo": "sein",
+    "es": "ser / estar",
+    "conjugacion": { "ich": "bin", "du": "bist", "er_sie_es": "ist", "wir": "sind", "ihr": "seid", "sie_Sie": "sind" }
+  },
+  {
+    "infinitivo": "haben",
+    "es": "tener",
+    "conjugacion": { "ich": "habe", "du": "hast", "er_sie_es": "hat", "wir": "haben", "ihr": "habt", "sie_Sie": "haben" }
+  },
+  {
+    "infinitivo": "werden",
+    "es": "convertirse en / llegar a ser",
+    "conjugacion": { "ich": "werde", "du": "wirst", "er_sie_es": "wird", "wir": "werden", "ihr": "werdet", "sie_Sie": "werden" }
+  },
+  {
+    "infinitivo": "machen",
+    "es": "hacer",
+    "conjugacion": { "ich": "mache", "du": "machst", "er_sie_es": "macht", "wir": "machen", "ihr": "macht", "sie_Sie": "machen" }
+  },
+  {
+    "infinitivo": "gehen",
+    "es": "ir (a pie)",
+    "conjugacion": { "ich": "gehe", "du": "gehst", "er_sie_es": "geht", "wir": "gehen", "ihr": "geht", "sie_Sie": "gehen" }
+  },
+  {
+    "infinitivo": "kommen",
+    "es": "venir",
+    "conjugacion": { "ich": "komme", "du": "kommst", "er_sie_es": "kommt", "wir": "kommen", "ihr": "kommt", "sie_Sie": "kommen" }
+  },
+  {
+    "infinitivo": "sagen",
+    "es": "decir",
+    "conjugacion": { "ich": "sage", "du": "sagst", "er_sie_es": "sagt", "wir": "sagen", "ihr": "sagt", "sie_Sie": "sagen" }
+  },
+  {
+    "infinitivo": "sehen",
+    "es": "ver",
+    "conjugacion": { "ich": "sehe", "du": "siehst", "er_sie_es": "sieht", "wir": "sehen", "ihr": "seht", "sie_Sie": "sehen" }
+  },
+  {
+    "infinitivo": "wissen",
+    "es": "saber",
+    "conjugacion": { "ich": "weiß", "du": "weißt", "er_sie_es": "weiß", "wir": "wissen", "ihr": "wisst", "sie_Sie": "wissen" }
+  },
+  {
+    "infinitivo": "können",
+    "es": "poder / saber (habilidad)",
+    "conjugacion": { "ich": "kann", "du": "kannst", "er_sie_es": "kann", "wir": "können", "ihr": "könnt", "sie_Sie": "können" }
+  },
+  {
+    "infinitivo": "müssen",
+    "es": "tener que / deber",
+    "conjugacion": { "ich": "muss", "du": "musst", "er_sie_es": "muss", "wir": "müssen", "ihr": "müsst", "sie_Sie": "müssen" }
+  },
+  {
+    "infinitivo": "wollen",
+    "es": "querer",
+    "conjugacion": { "ich": "will", "du": "willst", "er_sie_es": "will", "wir": "wollen", "ihr": "wollt", "sie_Sie": "wollen" }
+  },
+  {
+    "infinitivo": "mögen",
+    "es": "gustar / querer (algo)",
+    "conjugacion": { "ich": "mag", "du": "magst", "er_sie_es": "mag", "wir": "mögen", "ihr": "mögt", "sie_Sie": "mögen" }
+  },
+  {
+    "infinitivo": "dürfen",
+    "es": "poder / tener permiso",
+    "conjugacion": { "ich": "darf", "du": "darfst", "er_sie_es": "darf", "wir": "dürfen", "ihr": "dürft", "sie_Sie": "dürfen" }
+  },
+  {
+    "infinitivo": "sollen",
+    "es": "deber (recomendación)",
+    "conjugacion": { "ich": "soll", "du": "sollst", "er_sie_es": "soll", "wir": "sollen", "ihr": "sollt", "sie_Sie": "sollen" }
+  },
+  {
+    "infinitivo": "arbeiten",
+    "es": "trabajar",
+    "conjugacion": { "ich": "arbeite", "du": "arbeitest", "er_sie_es": "arbeitet", "wir": "arbeiten", "ihr": "arbeitet", "sie_Sie": "arbeiten" }
+  },
+  {
+    "infinitivo": "wohnen",
+    "es": "vivir (residir)",
+    "conjugacion": { "ich": "wohne", "du": "wohnst", "er_sie_es": "wohnt", "wir": "wohnen", "ihr": "wohnt", "sie_Sie": "wohnen" }
+  },
+  {
+    "infinitivo": "sprechen",
+    "es": "hablar",
+    "conjugacion": { "ich": "spreche", "du": "sprichst", "er_sie_es": "spricht", "wir": "sprechen", "ihr": "sprecht", "sie_Sie": "sprechen" }
+  },
+  {
+    "infinitivo": "essen",
+    "es": "comer",
+    "conjugacion": { "ich": "esse", "du": "isst", "er_sie_es": "isst", "wir": "essen", "ihr": "esst", "sie_Sie": "essen" }
+  },
+  {
+    "infinitivo": "trinken",
+    "es": "beber",
+    "conjugacion": { "ich": "trinke", "du": "trinkst", "er_sie_es": "trinkt", "wir": "trinken", "ihr": "trinkt", "sie_Sie": "trinken" }
+  },
+  {
+    "infinitivo": "lesen",
+    "es": "leer",
+    "conjugacion": { "ich": "lese", "du": "liest", "er_sie_es": "liest", "wir": "lesen", "ihr": "lest", "sie_Sie": "lesen" }
+  },
+  {
+    "infinitivo": "schreiben",
+    "es": "escribir",
+    "conjugacion": { "ich": "schreibe", "du": "schreibst", "er_sie_es": "schreibt", "wir": "schreiben", "ihr": "schreibt", "sie_Sie": "schreiben" }
+  },
+  {
+    "infinitivo": "kaufen",
+    "es": "comprar",
+    "conjugacion": { "ich": "kaufe", "du": "kaufst", "er_sie_es": "kauft", "wir": "kaufen", "ihr": "kauft", "sie_Sie": "kaufen" }
+  },
+  {
+    "infinitivo": "geben",
+    "es": "dar",
+    "conjugacion": { "ich": "gebe", "du": "gibst", "er_sie_es": "gibt", "wir": "geben", "ihr": "gebt", "sie_Sie": "geben" }
+  },
+  {
+    "infinitivo": "nehmen",
+    "es": "tomar / coger",
+    "conjugacion": { "ich": "nehme", "du": "nimmst", "er_sie_es": "nimmt", "wir": "nehmen", "ihr": "nehmt", "sie_Sie": "nehmen" }
+  },
+  {
+    "infinitivo": "finden",
+    "es": "encontrar",
+    "conjugacion": { "ich": "finde", "du": "findest", "er_sie_es": "findet", "wir": "finden", "ihr": "findet", "sie_Sie": "finden" }
+  },
+  {
+    "infinitivo": "heißen",
+    "es": "llamarse",
+    "conjugacion": { "ich": "heiße", "du": "heißt", "er_sie_es": "heißt", "wir": "heißen", "ihr": "heißt", "sie_Sie": "heißen" }
+  },
+  {
+    "infinitivo": "fahren",
+    "es": "conducir / viajar",
+    "conjugacion": { "ich": "fahre", "du": "fährst", "er_sie_es": "fährt", "wir": "fahren", "ihr": "fahrt", "sie_Sie": "fahren" }
+  },
+  {
+    "infinitivo": "helfen",
+    "es": "ayudar",
+    "conjugacion": { "ich": "helfe", "du": "hilfst", "er_sie_es": "hilft", "wir": "helfen", "ihr": "helft", "sie_Sie": "helfen" }
+  }
+]

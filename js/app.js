@@ -4,6 +4,9 @@ import * as tts from './tts.js';
 import * as levels from './levels.js';
 import { buildQuestion } from './quiz.js';
 import * as ankiImport from './anki-import.js';
+import * as writeLogic from './write.js';
+import * as articles from './articles.js';
+import * as conjugation from './conjugation.js';
 
 const { Rating, State, createNewCardState, scheduleReview, stateLabel } = fsrsWrap;
 
@@ -24,9 +27,11 @@ let queueIndex = 0;
 let sessionReviewed = 0;
 let currentDirection = 'de-es'; // 'de-es' | 'es-de'
 let revealed = false;
-let reviewMode = 'flashcards'; // 'flashcards' | 'quiz'
+let reviewMode = 'flashcards'; // 'flashcards' | 'quiz' | 'write'
 let diagnosticState = null;
 let ankiParsedDeck = null; // { fieldNames, notes } — resultado de anki-import.parseApkg
+let audioOnlyMode = false; // toggle de Ajustes, solo afecta a Flashcards
+let drillState = null; // { title, questions, index, correctCount, retryFn }
 
 // ---------------------------------------------------------------------------
 // Elementos del DOM
@@ -71,6 +76,37 @@ const els = {
   quizTerm: el('quiz-term'),
   quizBtnListen: el('quiz-btn-listen'),
   quizOptions: el('quiz-options'),
+
+  writeCardWrap: el('write-card-wrap'),
+  writeProgressFill: el('write-progress-fill'),
+  writeCategory: el('write-category'),
+  writeTerm: el('write-term'),
+  writeForm: el('write-form'),
+  writeInput: el('write-input'),
+  writeFeedback: el('write-feedback'),
+  writeFeedbackStatus: el('write-feedback-status'),
+  writeAnswer: el('write-answer'),
+  writeBtnListen: el('write-btn-listen'),
+  writeExampleDe: el('write-example-de'),
+  writeExampleEs: el('write-example-es'),
+  writeGradeButtons: el('write-grade-buttons'),
+
+  toggleAudioOnly: el('toggle-audio-only'),
+  btnDrillArticles: el('btn-drill-articles'),
+  btnDrillConjugation: el('btn-drill-conjugation'),
+
+  drillModal: el('drill-modal'),
+  drillRunning: el('drill-running'),
+  drillResult: el('drill-result'),
+  drillTitle: el('drill-title'),
+  drillProgress: el('drill-progress'),
+  drillContext: el('drill-context'),
+  drillTerm: el('drill-term'),
+  drillOptions: el('drill-options'),
+  drillResultTitle: el('drill-result-title'),
+  drillResultText: el('drill-result-text'),
+  drillRetryBtn: el('drill-retry-btn'),
+  drillCloseBtn: el('drill-close-btn'),
 
   statToday: el('stat-today'),
   statStreak: el('stat-streak'),
@@ -130,6 +166,8 @@ async function boot() {
 
   try {
     unlockedLevels = await storage.getUnlockedLevels();
+    audioOnlyMode = await storage.getMeta('audioOnlyMode', false);
+    if (els.toggleAudioOnly) els.toggleAudioOnly.checked = audioOnlyMode;
     await loadVocabAndInit();
     await maybeShowOnboarding();
     await loadQueue();
@@ -287,6 +325,7 @@ async function recordReview(grade) {
 
 function renderCurrent() {
   if (reviewMode === 'quiz') renderQuiz();
+  else if (reviewMode === 'write') renderWrite();
   else renderFlashcard();
 }
 
@@ -303,11 +342,12 @@ function renderFlashcard() {
   els.sessionComplete.classList.add('hidden');
   els.reviewEmpty.classList.add('hidden');
   els.quizCardWrap.classList.add('hidden');
+  els.writeCardWrap.classList.add('hidden');
   els.reviewCardWrap.classList.remove('hidden');
 
   const { vocab } = queue[queueIndex];
   revealed = false;
-  currentDirection = Math.random() < 0.5 ? 'de-es' : 'es-de';
+  currentDirection = audioOnlyMode ? 'de-es' : (Math.random() < 0.5 ? 'de-es' : 'es-de');
 
   els.progressFill.style.width = `${Math.round((queueIndex / queue.length) * 100)}%`;
   els.cardCategory.textContent = vocab.categoria;
@@ -315,7 +355,12 @@ function renderFlashcard() {
   const germanTerm = formatGerman(vocab);
 
   if (currentDirection === 'de-es') {
-    els.cardTerm.textContent = germanTerm;
+    if (audioOnlyMode) {
+      els.cardTerm.textContent = '🔊 Escuchá y pensá la traducción';
+      tts.speak(vocab.de); // best-effort: si el navegador bloquea el autoplay, el botón de abajo es el fallback
+    } else {
+      els.cardTerm.textContent = germanTerm;
+    }
     els.btnListen.classList.remove('hidden');
     els.btnListen.onclick = () => tts.speak(vocab.de);
   } else {
@@ -343,6 +388,7 @@ function revealCard() {
   const { vocab } = queue[queueIndex];
 
   if (currentDirection === 'de-es') {
+    if (audioOnlyMode) els.cardTerm.textContent = formatGerman(vocab); // ya no hace falta ocultarlo
     els.cardAnswer.textContent = capitalize(vocab.es);
     els.cardExtra.textContent = vocab.en ? `English: ${vocab.en}` : '';
     els.btnListenBack.classList.add('hidden');
@@ -371,6 +417,7 @@ async function gradeCard(grade) {
 function showSessionComplete() {
   els.reviewCardWrap.classList.add('hidden');
   els.quizCardWrap.classList.add('hidden');
+  els.writeCardWrap.classList.add('hidden');
   els.sessionComplete.classList.remove('hidden');
   els.sessionSummary.textContent = sessionReviewed > 0
     ? `¡Repasaste ${sessionReviewed} tarjeta${sessionReviewed === 1 ? '' : 's'}! 🎉`
@@ -390,6 +437,7 @@ function renderQuiz() {
   els.sessionComplete.classList.add('hidden');
   els.reviewEmpty.classList.add('hidden');
   els.reviewCardWrap.classList.add('hidden');
+  els.writeCardWrap.classList.add('hidden');
   els.quizCardWrap.classList.remove('hidden');
 
   const { vocab } = queue[queueIndex];
@@ -437,6 +485,56 @@ async function handleQuizAnswer(selectedBtn, question) {
   renderCurrent();
   refreshDueCount();
   refreshLevelBanner();
+}
+
+// ---------------------------------------------------------------------------
+// Render: modo Escribir (producción activa, español→alemán, alimenta FSRS)
+// ---------------------------------------------------------------------------
+
+function renderWrite() {
+  if (queueIndex >= queue.length) {
+    showSessionComplete();
+    return;
+  }
+
+  els.sessionComplete.classList.add('hidden');
+  els.reviewEmpty.classList.add('hidden');
+  els.reviewCardWrap.classList.add('hidden');
+  els.quizCardWrap.classList.add('hidden');
+  els.writeCardWrap.classList.remove('hidden');
+
+  const { vocab } = queue[queueIndex];
+
+  els.writeProgressFill.style.width = `${Math.round((queueIndex / queue.length) * 100)}%`;
+  els.writeCategory.textContent = vocab.categoria;
+  els.writeTerm.textContent = capitalize(vocab.es);
+
+  els.writeInput.value = '';
+  els.writeInput.disabled = false;
+  els.writeFeedback.classList.add('hidden');
+  els.writeGradeButtons.classList.add('hidden');
+  els.writeForm.classList.remove('hidden');
+  els.writeInput.focus();
+}
+
+function handleWriteCheck() {
+  if (queueIndex >= queue.length) return;
+  const { vocab } = queue[queueIndex];
+  const correctAnswer = formatGerman(vocab);
+  const result = writeLogic.checkAnswer(els.writeInput.value, correctAnswer);
+
+  els.writeInput.disabled = true;
+  els.writeForm.classList.add('hidden');
+
+  els.writeFeedbackStatus.textContent = result.correct ? '✅ ¡Correcto!' : '❌ Casi — fijate la diferencia';
+  els.writeFeedbackStatus.className = `write-feedback-status ${result.correct ? 'correct' : 'incorrect'}`;
+  els.writeAnswer.textContent = correctAnswer;
+  els.writeBtnListen.onclick = () => tts.speak(vocab.de);
+  els.writeExampleDe.textContent = vocab.ejemplo_de || '';
+  els.writeExampleEs.textContent = vocab.ejemplo_es || '';
+
+  els.writeFeedback.classList.remove('hidden');
+  els.writeGradeButtons.classList.remove('hidden');
 }
 
 // ---------------------------------------------------------------------------
@@ -638,6 +736,88 @@ function finishDiagnostic() {
 }
 
 // ---------------------------------------------------------------------------
+// Drills independientes (artículos der/die/das, conjugaciones) — NO tocan
+// FSRS ni reviewLog, son ejercicios focalizados aparte de la cola diaria.
+// ---------------------------------------------------------------------------
+
+function runDrill(title, questions, retryFn) {
+  if (questions.length === 0) {
+    showToast('No hay suficiente contenido todavía para este ejercicio.');
+    return;
+  }
+
+  drillState = { title, questions, index: 0, correctCount: 0, retryFn };
+
+  els.drillTitle.textContent = title;
+  els.drillModal.classList.remove('hidden');
+  els.drillRunning.classList.remove('hidden');
+  els.drillResult.classList.add('hidden');
+  renderDrillQuestion();
+}
+
+function renderDrillQuestion() {
+  const { questions, index } = drillState;
+  const q = questions[index];
+
+  els.drillProgress.style.width = `${Math.round((index / questions.length) * 100)}%`;
+  els.drillContext.textContent = q.contextText || '';
+  els.drillTerm.textContent = q.promptText;
+
+  els.drillOptions.innerHTML = '';
+  q.options.forEach((opt) => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.textContent = opt.text;
+    btn.dataset.id = opt.id;
+    els.drillOptions.appendChild(btn);
+  });
+}
+
+function handleDrillAnswer(selectedBtn) {
+  const q = drillState.questions[drillState.index];
+  const correct = selectedBtn.dataset.id === q.correctId;
+  if (correct) drillState.correctCount++;
+
+  [...els.drillOptions.children].forEach((btn) => {
+    btn.disabled = true;
+    if (btn.dataset.id === q.correctId) btn.classList.add('correct');
+    else if (btn === selectedBtn) btn.classList.add('incorrect');
+  });
+
+  setTimeout(() => {
+    drillState.index++;
+    if (drillState.index >= drillState.questions.length) {
+      finishDrill();
+    } else {
+      renderDrillQuestion();
+    }
+  }, 600);
+}
+
+function finishDrill() {
+  const { questions, correctCount, retryFn } = drillState;
+  const pct = Math.round((correctCount / questions.length) * 100);
+
+  els.drillRunning.classList.add('hidden');
+  els.drillResult.classList.remove('hidden');
+  els.drillResultTitle.textContent = pct >= 70 ? '¡Bien ahí! 💪' : 'Seguí practicando';
+  els.drillResultText.textContent = `Acertaste ${correctCount}/${questions.length} (${pct}%). Esto no afecta tus estadísticas de repaso.`;
+  els.drillRetryBtn.onclick = retryFn;
+}
+
+function openArticlesDrill() {
+  const nouns = allVocabArray.filter((v) => v.tipo === 'sustantivo' && v.articulo);
+  const start = () => runDrill('Artículos: der / die / das', articles.buildArticleQuestions(nouns, 15), start);
+  start();
+}
+
+async function openConjugationDrill() {
+  const verbs = await conjugation.loadConjugations();
+  const start = () => runDrill('Conjugación (presente)', conjugation.buildConjugationQuestions(verbs, 15), start);
+  start();
+}
+
+// ---------------------------------------------------------------------------
 // Import de mazos Anki (.apkg)
 // ---------------------------------------------------------------------------
 
@@ -827,6 +1007,16 @@ function wireStaticUI() {
     if (btn) gradeCard(Number(btn.dataset.grade));
   });
 
+  els.writeForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    handleWriteCheck();
+  });
+
+  els.writeGradeButtons.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-grade');
+    if (btn) gradeCard(Number(btn.dataset.grade));
+  });
+
   els.btnReviewMore.addEventListener('click', async () => {
     await loadQueue();
     renderCurrent();
@@ -838,6 +1028,25 @@ function wireStaticUI() {
   });
 
   els.toggleDark.addEventListener('change', (e) => toggleTheme(e.target.checked));
+
+  els.toggleAudioOnly.addEventListener('change', async (e) => {
+    audioOnlyMode = e.target.checked;
+    await storage.setMeta('audioOnlyMode', audioOnlyMode);
+    if (reviewMode === 'flashcards') renderCurrent();
+  });
+
+  els.btnDrillArticles.addEventListener('click', openArticlesDrill);
+  els.btnDrillConjugation.addEventListener('click', openConjugationDrill);
+
+  els.drillOptions.addEventListener('click', (e) => {
+    const btn = e.target.closest('.quiz-option');
+    if (!btn || btn.disabled) return;
+    handleDrillAnswer(btn);
+  });
+  els.drillCloseBtn.addEventListener('click', () => {
+    els.drillModal.classList.add('hidden');
+    drillState = null;
+  });
 
   els.btnExport.addEventListener('click', exportProgress);
   els.importFile.addEventListener('change', (e) => {

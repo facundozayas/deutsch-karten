@@ -654,4 +654,46 @@ button {
   color: var(--text-muted);
 }
 
+/* ---- Modo Escribir (producción activa) ---- */
+
+#write-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.write-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-elevated-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 1.15rem;
+  text-align: center;
+}
+
+.write-input:focus {
+  outline: none;
+  border-color: var(--accent, #6c8cff);
+}
+
+.write-feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.write-feedback-status {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.write-feedback-status.correct { color: #3fb27f; }
+.write-feedback-status.incorrect { color: #e5555a; }
+
 .anki-preview-row:last-child { border-bottom: none; }

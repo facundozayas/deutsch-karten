@@ -8,7 +8,7 @@
 // si no los usuarios van a seguir viendo la versión vieja hasta que iOS decida
 // revisar el service worker.
 
-const CACHE_NAME = 'deutsch-karten-v2';
+const CACHE_NAME = 'deutsch-karten-v3';
 
 // Nota: las librerías de import de Anki (jszip, sql.js) NO están acá a
 // propósito — son pesadas (~700KB) y solo hacen falta si el usuario usa esa
@@ -25,9 +25,13 @@ const APP_SHELL = [
   './js/tts.js',
   './js/levels.js',
   './js/quiz.js',
+  './js/write.js',
+  './js/articles.js',
+  './js/conjugation.js',
   './js/vendor/ts-fsrs.mjs',
   './data/vocab-a1.json',
   './data/vocab-a2.json',
+  './data/conjugaciones.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-512-maskable.png',

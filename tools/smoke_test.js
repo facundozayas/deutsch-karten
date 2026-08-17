@@ -63,7 +63,10 @@ const BASE_URL = 'http://127.0.0.1:8811';
     await page.waitForTimeout(150);
     const answer = await page.locator('#card-answer').textContent();
     const grade = [1, 2, 3, 4][i % 4];
-    await page.locator(`.btn-grade[data-grade="${grade}"]`).click();
+    // Escopado a #review-card-wrap: desde v3 el modo Escribir tiene sus
+    // propios botones .btn-grade (ocultos) en #write-grade-buttons, y sin
+    // esto el locator sería ambiguo (matchea los dos aunque uno esté hidden).
+    await page.locator(`#review-card-wrap .btn-grade[data-grade="${grade}"]`).click();
     await page.waitForTimeout(150);
     console.log(`   Tarjeta ${i + 1}: respuesta="${answer}", grade=${grade}`);
   }
@@ -101,7 +104,9 @@ const BASE_URL = 'http://127.0.0.1:8811';
   // El checkbox real está visualmente oculto (opacity:0, 0x0) por el estilo
   // custom del switch; clickeamos el .slider visible, que al estar dentro
   // del <label> dispara el toggle del input igual que un click nativo.
-  await page.locator('label.switch .slider').click();
+  // Escopado al switch de #toggle-dark: desde v3 también existe el switch
+  // de "Modo solo audio" con la misma estructura .switch .slider.
+  await page.locator('#toggle-dark').locator('xpath=following-sibling::span[contains(@class,"slider")]').click();
   await page.waitForTimeout(100);
   const themeAfter = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
   console.log(`   Tema: ${themeBefore} -> ${themeAfter}`);
